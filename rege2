@@ -1,0 +1,78 @@
+Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+public class Win32 {
+    [DllImport("user32.dll")]
+    public static extern short GetAsyncKeyState(int vKey);
+
+    [DllImport("user32.dll")]
+    public static extern void mouse_event(int dwFlags, int dx, int dy, int dwData, int dwExtraInfo);
+
+    [DllImport("winmm.dll")]
+    public static extern uint timeBeginPeriod(uint uMilliseconds);
+
+    [DllImport("kernel32.dll")]
+    public static extern void Sleep(uint dwMilliseconds);
+
+    public const int LEFTDOWN  = 0x02;
+    public const int LEFTUP    = 0x04;
+    public const int RIGHTDOWN = 0x08;
+    public const int RIGHTUP   = 0x10;
+}
+"@
+
+# 1. Force High Precision for sub-10ms delays
+[Win32]::timeBeginPeriod(1)
+
+# 2. Prevent Windows Efficiency Mode Throttling
+$process = [System.Diagnostics.Process]::GetCurrentProcess()
+$process.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::RealTime
+
+# 3. Ported Logic from 25.xml
+$config = @(
+    @(11,16), @(13,33), @(10,13), @(30,26), @(11,13), @(15,29), @(10,15), @(14,31), @(13,10), @(33,35),
+    @(10,19), @(10,34), @(12,7),  @(32,34), @(10,17), @(12,32), @(11,6),  @(38,33), @(9,15),  @(13,28),
+    @(11,3),  @(33,30), @(10,13), @(15,33), @(9,9),   @(32,36), @(10,12), @(14,34), @(11,8),  @(30,31),
+    @(11,16), @(13,33), @(11,6),  @(34,31), @(10,18), @(11,31), @(10,8),  @(28,39), @(9,8),   @(34,34),
+    @(12,3),  @(26,36), @(10,16), @(12,35), @(11,12), @(15,29), @(10,15), @(12,30), @(11,14), @(14,31),
+    @(10,15), @(12,32), @(12,6),  @(34,26), @(25,32), @(11,11), @(19,28), @(12,8),  @(33,37)
+)
+
+$idx = 0
+$rand = New-Object System.Random
+
+Write-Host "OnlyFans Regii 676767 astap" -ForegroundColor Cyan
+Write-Host "Mouse 4 -> RIGHT CLICK | Mouse 5 -> LEFT CLICK" -ForegroundColor Green
+Write-Host "Press F12 to Exit" -ForegroundColor Yellow
+
+while ($true) {
+    if ([Win32]::GetAsyncKeyState(0x7B) -lt 0) { break } # F12 Exit
+
+    # Triggered by Mouse 4 (0x05) or Mouse 5 (0x06)
+    $m4 = [Win32]::GetAsyncKeyState(0x05) -lt 0 
+    $m5 = [Win32]::GetAsyncKeyState(0x06) -lt 0 
+
+    if ($m4 -or $m5) {
+        $pair = $config[$idx % $config.Count]
+        $idx++
+
+        # Jitter logic from original script
+        $downDelay = [Math]::Max(1, $pair[0] + $rand.Next(-1, 2))
+        $upDelay   = [Math]::Max(1, $pair[1] + $rand.Next(-1, 2))
+
+        # Button Assignment Swapped:
+        # If M4 (0x05) is pressed -> Right Click (0x08/0x10)
+        # If M5 (0x06) is pressed -> Left Click (0x02/0x04)
+        $downFlag = if ($m4) { 0x08 } else { 0x02 }
+        $upFlag   = if ($m4) { 0x10 } else { 0x04 }
+
+        # Execution
+        [Win32]::mouse_event($downFlag, 0, 0, 0, 0)
+        [Win32]::Sleep($downDelay)
+        [Win32]::mouse_event($upFlag, 0, 0, 0, 0)
+        [Win32]::Sleep($upDelay)
+    }
+    else {
+        [Win32]::Sleep(1)
+    }
+}
