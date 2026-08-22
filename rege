@@ -41,9 +41,9 @@ $config = @(
 $idx = 0
 $rand = New-Object System.Random
 
-Write-Host "regele takizo" -ForegroundColor Cyan
-Write-Host "Mouse 4 -> RIGHT CLICK | Mouse 5 -> LEFT CLICK" -ForegroundColor Green
-Write-Host "Press F12 to Exit" -ForegroundColor Yellow
+Write-Host "takizo fute mamele la toti" -ForegroundColor Red
+Write-Host "Mouse 4 -> pui blocuri ca spartu | Mouse 5 -> futi mamele la toti" -ForegroundColor Green
+Write-Host "Apasa F12 to sa inchizi pisatu asta de cod" -ForegroundColor Yellow
 
 while ($true) {
     if ([Win32]::GetAsyncKeyState(0x7B) -lt 0) { break } # F12 Exit
